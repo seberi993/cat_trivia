@@ -10,6 +10,7 @@ module.exports = {
       common:'#868686',
       trash:'#ffffff',
       legendary:'#f58b00',
+      bag:'#42392d',
       background_bright:'rgb(186 230 253)',
       background_dark:'rgb(2 132 199)',
       blue_light:'rgb(12 74 110)',
