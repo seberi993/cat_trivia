@@ -10,12 +10,16 @@ const Home: NextPage = () => {
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [firstTry, setFirstTry] = useState(true);
   const [score, setPlayerScore] = useState(0);
+  const [savedCats, setSavedCats] = useState(0);
+  const [prices, setPrices] = useState([0]);
+
   const [inLootMenu, setInLootMenu] = useState(false);
   const [listOfCats, setListOfCats] = useState([""]);
+  const [cats, setCats] = useState(Object);
   const [hint, setHint] = useState("");
 
   const catsOfThisRound: string[] = [];
-  const price: number[] = [];
+  const pricesOfThisRound: number[] = [];
 
   async function initializeData() {
     loadNextQuestion();
@@ -31,6 +35,7 @@ const Home: NextPage = () => {
 
     if (value != undefined && value != " ") {
       if (value.toLowerCase() === correctAnswer.toLowerCase()) {
+        console.log("correct!");
         setInLootMenu(true);
         setHint("Good job! pick one");
         increaseScore(5);
@@ -55,11 +60,15 @@ const Home: NextPage = () => {
 
   const loadNextCats = async () => {
     const cats = await getCatFromAPI();
+   
+    setCats(cats);
     for (let i = 0; i < cats.length; i++) {
+      pricesOfThisRound[i] = Math.floor(Math.random() * 5) + 1;
       catsOfThisRound[i] = JSON.stringify(cats[i].url ?? "");
       catsOfThisRound[i] = catsOfThisRound[i]?.replaceAll('"', "") ?? "";
-     
+      checkForGif(JSON.stringify(catsOfThisRound[i]),i);
     }
+    setPrices(pricesOfThisRound);
     setListOfCats(catsOfThisRound);
   };
 
@@ -85,7 +94,6 @@ const Home: NextPage = () => {
   };
 
   const cheat = () => {
-
     const textArea = document.getElementById(
       "fname"
     ) as HTMLInputElement | null;
@@ -93,15 +101,32 @@ const Home: NextPage = () => {
       textArea.value = correctAnswer;
     }
   };
-  const checkForGif = (str:string) =>{
-    if(str.includes(".gif")){
-      console.log("FOUND GIF");
-      return "legendary";
+  const checkForGif = (str: string, index: number) => {
+    if (str.includes(".gif")) {
+      pricesOfThisRound[index] = Math.floor(Math.random() * 100) + 1;
+      return "hover:border-epic border-4";
+    } else {
+      return "hover:border-uncommon border-2";
     }
-    else{
-      return"uncommon";
+  };
+
+  const buyCat = (index: number) => {
+    if (pricesOfThisRound[index] && pricesOfThisRound ? [index] : 0 > score) {
+      alert("You can't afford that cat");
+      console.log("price", prices[index]);
+      console.log("score", score);
+      return;
     }
-  }
+    console.log("you bought", cats[index]);
+    setSavedCats((savedCats) => savedCats + 1);
+    goBackToTrivia();
+  };
+
+  const checkForBreed = (index: number) => {
+    if (cats[index].breeds > 0) {
+      console.log(cats[index].breeds);
+    }
+  };
 
   return (
     <>
@@ -112,35 +137,42 @@ const Home: NextPage = () => {
       </Head>
 
       {inLootMenu ? (
-        
-        <div className=" min-h-screen max-h-screen bg-gradient-to-t from-background_dark to-background_bright ">
-         <>
-          <p className="absolute top-5 right-5 rounded-md bg-blue_light p-4 text-2xl text-white ">
-            {score}
-          </p>
-          <p className="place-self-center text-4xl font-extrabold text-blue_light">
-            {hint}
-          </p>
+        <div className="max-h-screen min-h-screen bg-gradient-to-t from-background_dark to-background_bright  ">
+          <div>
+            <>
+              <p className="px-96 text-4xl font-extrabold text-blue_light">
+                {hint}
+              </p>
 
-          <div className="flex-auto">
-            {listOfCats.map(function (value: string) {
-              return (
-                <div key={value}>
-                <Image
-                  className={`border-4 f border-${checkForGif(value)}} lex-col`}
-                  src={value !== undefined && value ? value : ""}
-                  alt={""}
-                  width="200"
-                  height="200"
-                  
-                ></Image>
-                </div>
-              );
-            })}
-            </div>
-          </>
+              <div className="flex flex-row">
+                {listOfCats.map(function (value: string, index: number) {
+                  return (
+                    <div key={value}>
+                      <Image
+                        className={`${checkForBreed(index)}  ${checkForGif(
+                          value,
+                          index
+                        )} mx-10`}
+                        src={value !== undefined && value ? value : ""}
+                        alt={""}
+                        width={300}
+                        height={cats[index].height}
+                        onClick={() => buyCat(index)}
+                      ></Image>
+                      price:{prices[index]}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          </div>
+          <p className="absolute bottom-0 left-0 flex w-40 flex-row rounded-md bg-blue_light p-4 text-2xl text-white ">
+            Cat treats: {score}
+          </p>
+          <button className="absolute bottom-0 right-0 flex w-40 flex-row rounded-md bg-blue_light p-4 text-2xl text-white ">
+            Your Cats: {savedCats}
+          </button>
         </div>
-        
       ) : (
         <main className=" grid min-h-screen place-items-center  bg-gradient-to-t from-background_dark to-background_bright">
           {firstTry ? (
@@ -167,6 +199,12 @@ const Home: NextPage = () => {
               </button>
             </div>
           )}
+          <p className="absolute bottom-0 left-0 rounded-md bg-blue_light p-4 text-2xl text-white ">
+            Cat treats: {score}
+          </p>
+          <button className="absolute bottom-0 right-0 flex w-40 flex-row rounded-md bg-blue_light p-4 text-2xl text-white ">
+            Your Cats: {savedCats}
+          </button>
         </main>
       )}
     </>
