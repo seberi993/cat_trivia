@@ -4,185 +4,103 @@ import getTriviaFromAPI from "./api/getTriviaFromAPI";
 import { useState } from "react";
 import Image from "next/image";
 import getCatFromAPI from "./api/getCatFromAPI";
-import pickRandomBorder from '../utils/pickRandomBorder'
-import { Container } from "postcss";
-//TODO need to add authentication with google, and save cat collection to account
-const array: any[] = [];
 
-/*
-AVAILABLE CATEGORIES FOR TRIVIA
-
-artliterature
-language
-sciencenature
-general
-fooddrink
-peopleplaces
-geography
-historyholidays
-entertainment
-toysgames
-music
-mathematics
-religionmythology
-sportsleisure
-
-*/
 const Home: NextPage = () => {
-  const [question, setQuestion] = useState("Click the button");
+  const [question, setQuestion] = useState("...Loading...");
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [firstTry, setFirstTry] = useState(true);
-  const [isWinning, userHasWon] = useState(false);
-  const [visibility, setVisibility] = useState(false);
-  const [cat, setCat] = useState(Object);
-  const [inputVisibility, setInputVisibility] = useState(false);
-  // const [fact, setFact] = useState("");
   const [score, setPlayerScore] = useState(0);
-  const [userHint, setHint] = useState("");
- 
-  async function clickHandler() {
-    if (firstTry) {
-      setFirstTry(false);
-    }
-    console.log("IS first try: ", firstTry);
-    setHint("");
-    const data = await getTriviaFromAPI();
-    const cat = await getCatFromAPI();
+  const [inLootMenu, setInLootMenu] = useState(false);
+  const [listOfCats, setListOfCats] = useState([""]);
+  const [hint, setHint] = useState("");
 
-    //const myFact = await getFactFromAPI();
-    // setFact(myFact);
-    console.log("!CAT", cat);
-    setCat(cat);
-    
-    setQuestion(data[0].question);
-    setCorrectAnswer(data[0].answer);
-    setVisibility(false);
-    userHasWon(false);
-    setInputVisibility(true);
+  const catsOfThisRound: string[] = [];
+  const price: number[] = [];
+
+  async function initializeData() {
+    loadNextQuestion();
+    loadNextCats();
+    setFirstTry(false);
   }
 
-  const increaseScore = (amount:number) => {
-    for(let i = 0; i < amount; i++){
-    setPlayerScore((score) => score + 1);
-  }
-  };
-
-  const decreaseScore = (amount:number) => {
-    for(let i = 0; i < amount; i++){
-      setPlayerScore((score) => score - 1);
-    }
-   
-  };
-
-  const answerHandler = async () => {
-    console.log("Checking answers...");
+  const checkAnswer = () => {
     const userInput = document.getElementById(
       "fname"
     ) as HTMLInputElement | null;
     const value = userInput?.value;
-    if(value?.length===0){
-      alert("Do something!");
-      return;
-    }
-    console.log("The correct answer was [" + correctAnswer + "]");
 
-    if(correctAnswer?.includes(value)&& value != " "){
-      console.log("Close enough!"); //user guesses something right
-      increaseScore(2);
-      userHasWon(true);
-      setVisibility(false);
-      setInputVisibility(false);
-   
-      
-    }
-
-    if (correctAnswer.toLowerCase() === value?.toLowerCase() ) {
-      //user is spot on =) 
-      //TODO Need to implement prisma to add cats to database.
-      userHasWon(true);
-      setVisibility(false);
-      setInputVisibility(false);
-
-      
-      increaseScore(5);
+    if (value != undefined && value != " ") {
+      if (value.toLowerCase() === correctAnswer.toLowerCase()) {
+        setInLootMenu(true);
+        setHint("Good job! pick one");
+        increaseScore(5);
+        clearInput();
+        loadNextQuestion();
+      }
     }
   };
-  const showCat = () => {
-    setVisibility(true);
-    userHasWon(false);
+
+  const goBackToTrivia = () => {
+    setHint("");
+    decreaseScore(1);
+    setInLootMenu(false);
+    loadNextCats();
   };
 
+  const loadNextQuestion = async () => {
+    const trivia = await getTriviaFromAPI();
+    setQuestion(trivia[0].question);
+    setCorrectAnswer(trivia[0].answer);
+  };
 
-  const showHint = () => {
-    
-    if(score > 0){
-      decreaseScore(1);
-      const first = correctAnswer.charAt(0);
-      setHint(first.toString());
-    }else{
-     alert("You need more score for that");
+  const loadNextCats = async () => {
+    const cats = await getCatFromAPI();
+    for (let i = 0; i < cats.length; i++) {
+      catsOfThisRound[i] = JSON.stringify(cats[i].url ?? "");
+      catsOfThisRound[i] = catsOfThisRound[i]?.replaceAll('"', "") ?? "";
+     
+    }
+    setListOfCats(catsOfThisRound);
+  };
+
+  const increaseScore = (amount: number) => {
+    for (let i = 0; i < amount; i++) {
+      setPlayerScore((score) => score + 1);
     }
   };
-  const cheat = () => {
 
-    console.log(correctAnswer);
+  const decreaseScore = (amount: number) => {
+    for (let i = 0; i < amount; i++) {
+      setPlayerScore((score) => score - 1);
+    }
+  };
+
+  const clearInput = () => {
     const textArea = document.getElementById(
       "fname"
     ) as HTMLInputElement | null;
-    if(textArea != null){
-      textArea.value=correctAnswer;
+    if (textArea != null) {
+      textArea.value = "";
     }
-
   };
 
-  let price = 0;
-  const saveCat = () => {
-    console.log("You saved", cat.props.data[0].url);
-    
+  const cheat = () => {
 
-    console.log("price:", price);
-    if(price < score){
-      decreaseScore(price);
-      array.push(cat.props.data[0].url)
-      
-    }else{
-      alert("You cant afford that cat");
-      return;
+    const textArea = document.getElementById(
+      "fname"
+    ) as HTMLInputElement | null;
+    if (textArea != null) {
+      textArea.value = correctAnswer;
     }
-    setVisibility(false);
   };
-
-  
-
-  const setBorderColor = () => {
-    const border = pickRandomBorder();
-
-    if(border==="border-legendary"){
-      price=35;
+  const checkForGif = (str:string) =>{
+    if(str.includes(".gif")){
+      console.log("FOUND GIF");
+      return "legendary";
     }
-    if(border ==="border-epic"){
-      price=15;
+    else{
+      return"uncommon";
     }
-    if(border === "border-rare"){
-      price = 9;
-    }
-    if(border === "border-uncommon"){
-      price = 7
-    }
-    if(border ==="border-common"){
-      price=3;
-    }
-    if(border==="border-trash"){
-      price=1;
-    }
-    console.log(border);
-    return border;
-  };
-
-
-  
-  const showInventory = () =>{
-    console.log(array);
   }
 
   return (
@@ -192,107 +110,65 @@ const Home: NextPage = () => {
         <meta name="description" content="Generated by create-t3-app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <p className="absolute top-0  text-#a3c8e5 inline-flex items-center rounded p-2 text-xl font-semibold">
-          {score}
-        </p>
-      <button
-          onClick={cheat}
-          className="absolute right-80 left-80 rounded-full bg-blue_light py-2 px-4 font-bold text-white hover:bg-blue_dark"
-        >
-          {" "}
-          Cheat
-        </button>
 
-      <main className=" grid place-items-center max-h-screen min-h-screen  bg-gradient-to-t from-background_dark to-background_bright">
+      {inLootMenu ? (
         
-        {isWinning ? (
-                <button
-                  className=" grid rounded-full bg-text_field py-2 px-4 font-bold text-white hover:bg-uncommon"onClick={showCat}>
-                  SHOW CAT
-                </button>
-            ) : (
-              <div >
-                {firstTry ? (
-                  <div>
-                   <div className="max-h-screen  text-center text-xl font-bold">
-                   Welcome to the cat trivia, press the button</div>
-                    <button
-                      className="absolute grid place-items-center top-80 rounded-full bg-text_field py-2 px-24 font-bold text-white hover:bg-blue_dark"
-                      onClick={clickHandler}>
-                      THE BUTTON
-                    </button>
-                    </div>) : (
-                  <div>
-                    <button
-                      className="absolute top-80 right-5 rounded-full bg-text_field py-2 px-4 font-bold text-white hover:bg-blue_dark"
-                      onClick={clickHandler}>
-                      Next
-                    </button>
-                    <button onClick={showInventory} className="absolute top-10  left-0 rounded-lg bg-text_field font-bold text-white hover:bg-bag"
-                    >Bag</button>
-                  </div>
-                )}
-              </div>
-            )}
-      
-        <div >
-          {inputVisibility ? (
-              <h3 className="text-gray-900 text-center text-xl font-bold">
-                {question}
-              </h3>
+        <div className=" min-h-screen max-h-screen bg-gradient-to-t from-background_dark to-background_bright ">
+         <>
+          <p className="absolute top-5 right-5 rounded-md bg-blue_light p-4 text-2xl text-white ">
+            {score}
+          </p>
+          <p className="place-self-center text-4xl font-extrabold text-blue_light">
+            {hint}
+          </p>
+
+          <div className="flex-auto">
+            {listOfCats.map(function (value: string) {
+              return (
+                <div key={value}>
+                <Image
+                  className={`border-4 f border-${checkForGif(value)}} lex-col`}
+                  src={value !== undefined && value ? value : ""}
+                  alt={""}
+                  width="200"
+                  height="200"
+                  
+                ></Image>
+                </div>
+              );
+            })}
+            </div>
+          </>
+        </div>
+        
+      ) : (
+        <main className=" grid min-h-screen place-items-center  bg-gradient-to-t from-background_dark to-background_bright">
+          {firstTry ? (
+            <button
+              onClick={initializeData}
+              className="rounded-full bg-blue_dark  px-8 py-4 font-bold text-white hover:bg-blue_light"
+            >
+              Start
+            </button>
           ) : (
-            <div></div>
-          )}
-          {inputVisibility ? (
-            <div className=" grid place-items-center ">
+            <div className=" top-20 grid text-2xl font-extrabold text-text_field ">
+              {question}
+
               <textarea
-                className=" text-black static bg-text_field py-2 px-4 font-bold hover:bg-text_dark"
+                onKeyPress={checkAnswer}
                 id="fname"
-                name="fname"
+                className="w-120 static  grid resize-none rounded-lg  border-4 border-blue_light bg-blue_light text-2xl text-white hover:border-blue_dark"
               ></textarea>
               <button
-                className="relative rounded-full bg-text_field py-2 px-4 font-bold text-white hover:bg-blue_dark"
-                onClick={answerHandler}
+                onClick={cheat}
+                className=" absolute top-0 left-80 rounded-full bg-blue_light py-2 px-4 font-bold text-white hover:bg-blue_dark"
               >
-                Submit
-              </button>{" "}
-              <button
-                className=" absolute left-0 top-80 rounded-full bg-text_field py-2 px-4 font-bold text-white hover:bg-blue_dark"
-                onClick={showHint}
-              >show hint
+                Cheat
               </button>
-              <div className="blur-sm text-6xl">{userHint}</div>
             </div>
-          ) : (
-            <div></div>
           )}
-          
-        </div>
-        <div className="static">
-            {visibility ? (
-              <div className=" grid  place-items-center">
-                <Image
-                  className={`${setBorderColor()} border-solid h-auto w-auto rounded-lg border-8 object-cover`}
-                  src={cat.props.data[0].url}
-                  alt=""
-                  width={cat.props.data[0].width} 
-                  height={cat.props.data[0].width}
-                ></Image>
-                
-                <button
-                  onClick={saveCat}
-                  className="bg-text_field relative rounded-full  py-2 px-4 font-bold text-white  hover:bg-blue_dark"
-                >
-                  Buy cat
-                </button>
-              </div>
-            ) : (
-              <div>
-                <p className="font-bold grid place-items-center"></p>
-              </div>
-            )}
-          </div>
-      </main>
+        </main>
+      )}
     </>
   );
 };

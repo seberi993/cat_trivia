@@ -1,7 +1,7 @@
 
 const getFactFromAPI = async () =>{
 
-    const URL = "https://api.api-ninjas.com/v1/facts?limit=1";
+    const URL = "https://api.api-ninjas.com/v1/facts?limit=100";
       const res = await fetch(URL, {
         method: "GET",
         headers: {

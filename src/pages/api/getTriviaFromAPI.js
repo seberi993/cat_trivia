@@ -1,7 +1,7 @@
 const getTriviaFromAPI = async () => {
-  const response = await fetch("https://api.api-ninjas.com/v1/trivia?category=", {
+  const response = await fetch("https://api.api-ninjas.com/v1/trivia?category=general", {
     method:'GET',
-    headers:{'X-Api-Key':"mzDA31bBi83Lg0z7c7uc+A==wyBuAIo4X2ldEzLu"}
+    headers:{'x-api-key':"zDRm1wASzX724oxcUZtUj90nJpvLI4C7gnVae3FQ",}
   }).then((response) => response.json());
   JSON.stringify(response);
   return response;

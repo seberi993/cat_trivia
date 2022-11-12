@@ -1,7 +1,7 @@
 
 const getCatFromAPI = async () =>{
 
-const URL = "https://api.thecatapi.com/v1/images/search?limit=1";
+const URL = "https://api.thecatapi.com/v1/images/search?limit=3";
   const res = await fetch(URL, {
     method: "GET",
     headers: {
@@ -10,9 +10,7 @@ const URL = "https://api.thecatapi.com/v1/images/search?limit=1";
     },
   });
   const data = await res.json();
-  return {
-    props: { data }, // will be passed to the page component as props
-  };
+  return data;
 }
 
 export default getCatFromAPI;
