@@ -4,7 +4,9 @@ import getTriviaFromAPI from "./api/getTriviaFromAPI";
 import { useState } from "react";
 import Image from "next/image";
 import getCatFromAPI from "./api/getCatFromAPI";
-
+//TODO: fix prices / score sync
+//TODO: fix prisma database to saved cats
+//TODO: display saved cats nicely when "your cats" button is pressed
 const Home: NextPage = () => {
   const [question, setQuestion] = useState("...Loading...");
   const [correctAnswer, setCorrectAnswer] = useState("");
@@ -12,6 +14,7 @@ const Home: NextPage = () => {
   const [score, setPlayerScore] = useState(0);
   const [savedCats, setSavedCats] = useState(0);
   const [prices, setPrices] = useState([0]);
+  const [savedCatPics, setSavedCatPic]= useState([{}])
 
   const [inLootMenu, setInLootMenu] = useState(false);
   const [listOfCats, setListOfCats] = useState([""]);
@@ -78,7 +81,7 @@ const Home: NextPage = () => {
     }
   };
 
-  const decreaseScore = (amount: number) => {
+  const decreaseScore = (amount: any) => {
     for (let i = 0; i < amount; i++) {
       setPlayerScore((score) => score - 1);
     }
@@ -103,7 +106,7 @@ const Home: NextPage = () => {
   };
   const checkForGif = (str: string, index: number) => {
     if (str.includes(".gif")) {
-      pricesOfThisRound[index] = Math.floor(Math.random() * 100) + 1;
+      pricesOfThisRound[index] = Math.floor(Math.random() * 50) + 15;
       return "hover:border-epic border-4";
     } else {
       return "hover:border-uncommon border-2";
@@ -113,13 +116,20 @@ const Home: NextPage = () => {
   const buyCat = (index: number) => {
     if (pricesOfThisRound[index] && pricesOfThisRound ? [index] : 0 > score) {
       alert("You can't afford that cat");
-      console.log("price", prices[index]);
+      console.log("price", pricesOfThisRound[index]);
       console.log("score", score);
       return;
     }
+    console.log("You have ", score)
     console.log("you bought", cats[index]);
+    decreaseScore(prices[index]);
+    console.log("costed you",prices[index]);
+    console.log("You have now", score)
+    setSavedCatPic(cats[index]);
     setSavedCats((savedCats) => savedCats + 1);
+
     goBackToTrivia();
+
   };
 
   const checkForBreed = (index: number) => {
@@ -127,6 +137,11 @@ const Home: NextPage = () => {
       console.log(cats[index].breeds);
     }
   };
+
+  const showYourSavedCats = () =>{
+    console.log("You have saved",savedCats + "cats");
+    console.log(savedCatPics);
+  }
 
   return (
     <>
@@ -202,7 +217,7 @@ const Home: NextPage = () => {
           <p className="absolute bottom-0 left-0 rounded-md bg-blue_light p-4 text-2xl text-white ">
             Cat treats: {score}
           </p>
-          <button className="absolute bottom-0 right-0 flex w-40 flex-row rounded-md bg-blue_light p-4 text-2xl text-white ">
+          <button onClick={showYourSavedCats}className="absolute bottom-0 right-0 flex w-40 flex-row rounded-md bg-blue_light p-4 text-2xl text-white ">
             Your Cats: {savedCats}
           </button>
         </main>
