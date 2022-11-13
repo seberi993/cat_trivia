@@ -14,7 +14,7 @@ const config = {
     defaultLocale: "en",
   },
   images:{
-    domains:["cdn2.thecatapi.com"],
+    domains:["cdn2.thecatapi.com","26.media.tumblr.com"]
   }
 };
 export default config;
