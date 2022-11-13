@@ -6,7 +6,8 @@ import Image from "next/image";
 import getCatFromAPI from "./api/getCatFromAPI";
 //TODO: fix prices / score sync
 //TODO: fix prisma database to saved cats
-//TODO: display saved cats nicely when "your cats" button is pressed
+//TODO: display saved cats nicely when "your cats" button is presseds
+//TODO: fix if breed is naked = legendary, dons / donskoy
 const Home: NextPage = () => {
   const [question, setQuestion] = useState("...Loading...");
   const [correctAnswer, setCorrectAnswer] = useState("");
@@ -50,7 +51,6 @@ const Home: NextPage = () => {
 
   const goBackToTrivia = () => {
     setHint("");
-    decreaseScore(1);
     setInLootMenu(false);
     loadNextCats();
   };
@@ -66,7 +66,7 @@ const Home: NextPage = () => {
    
     setCats(cats);
     for (let i = 0; i < cats.length; i++) {
-      pricesOfThisRound[i] = Math.floor(Math.random() * 5) + 1;
+      pricesOfThisRound[i] = Math.floor(Math.random() * 10) + 2;
       catsOfThisRound[i] = JSON.stringify(cats[i].url ?? "");
       catsOfThisRound[i] = catsOfThisRound[i]?.replaceAll('"', "") ?? "";
       checkForGif(JSON.stringify(catsOfThisRound[i]),i);
@@ -84,6 +84,9 @@ const Home: NextPage = () => {
   const decreaseScore = (amount: any) => {
     for (let i = 0; i < amount; i++) {
       setPlayerScore((score) => score - 1);
+      if(score <0){
+        alert("You have no cat treats!");
+      }
     }
   };
 
@@ -164,7 +167,7 @@ const Home: NextPage = () => {
                   return (
                     <div key={value}>
                       <Image
-                        className={`${checkForBreed(index)}  ${checkForGif(
+                        className={`${checkForBreed(index)} (
                           value,
                           index
                         )} mx-10`}
