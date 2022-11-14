@@ -7,7 +7,9 @@ import getCatFromAPI from "./api/getCatFromAPI";
 
 //TODO: fix prisma database to saved cats
 //TODO: display saved cats nicely when "your cats" button is presseds
-//TODO: fix if breed is naked = legendary, dons / donskoy
+//TODO: find another way to change border depending on rarity
+//TODO: add weighted list with breeds/borders and prices
+
 const Home: NextPage = () => {
   const [question, setQuestion] = useState("...Loading...");
   const [correctAnswer, setCorrectAnswer] = useState("");
@@ -22,8 +24,11 @@ const Home: NextPage = () => {
   const [hint, setHint] = useState("");
   const [breeds, setBreeds] = useState([""]);
   const [price, setPrice] = useState(0);
-
-
+  const [hasBreed, setBreed] = useState(false);
+  const [isLegendary, setLegendary] = useState(true);
+  const [isRussian, setRussian] = useState(false);
+  const [isMaineCoon, setMaineCoon] = useState(false);
+  const [isSomali, setSomali] = useState(false);
   const catsOfThisRound: string[] = [];
   const pricesOfThisRound: number[] = [];
 
@@ -125,16 +130,39 @@ const Home: NextPage = () => {
     if (cats[index].breeds.length > 0) {
       if (cats[index].breeds[0].name) {
         console.log(JSON.stringify("BREED:" + cats[index].breeds[0].name));
+        const name:string = cats[index].breeds[0].name;
+        if(name.includes("x")){
+          pricesOfThisRound[index] = 100;
+          setLegendary(true);
+        }
+        if(name.includes("Russ")){
+          setRussian(true);
+        }
+        if(name.includes("Main")){
+          setMaineCoon(true);
+        }
+        if(name.includes("Soma")){
+          setSomali(true);
+        }
         setBreeds(cats[index].breeds[0].name);
+        setBreed(true);
       }
     } else {
+      setLegendary(false);
+      setMaineCoon(false);
+      setSomali(false);
+      setRussian(false);
       setBreeds([""]);
+      setBreed(false);
     }
   };
+
+
 
   const showYourSavedCats = () => {
     console.log("You have saved", savedCats + "cats");
     console.log(savedCatPics);
+    setPlayerScore(20);
   };
 
   const displayCatInfo = (index: number) => {
@@ -143,7 +171,7 @@ const Home: NextPage = () => {
     setPrice(prices[index]!);
   };
 
-  const hideCatInfo = (index:number) => {
+  const hideCatInfo = () => {
     setBreeds([""]);
     setPrice(0);
   };
@@ -175,14 +203,14 @@ const Home: NextPage = () => {
                   return (
                     <div key={value}>
                       <Image
-                        className="mx-20 "
+                        className="mx-20" 
                         src={value !== undefined && value ? value : ""}
                         alt={""}
                         width={300}
                         height={cats[index].height}
                         onClick={() => buyCat(index)}
                         onMouseOver={() => displayCatInfo(index)}
-                        onMouseOut={() =>hideCatInfo(index)}
+                        onMouseOut={() =>hideCatInfo()}
                       ></Image>
                     </div>
                   );
@@ -193,13 +221,16 @@ const Home: NextPage = () => {
           <p className="absolute bottom-0 left-0 flex w-40 flex-row rounded-md bg-blue_light p-4 text-2xl text-white ">
             Purrency: {score}
           </p>
-          <button className="absolute bottom-0 right-0 flex w-40 flex-row rounded-md bg-blue_light p-4 text-2xl text-white ">
+          <button  onClick={showYourSavedCats} className="absolute bottom-0 right-0 rounded-md bg-blue_light p-4 text-2xl text-white ">
             Your Cats: {savedCats}
           </button>
-          {price >0 ? (
-            <div className="absolute bottom-30 right-96 flex w-80 flex-row p-4 text-2xl font-extrabold text-blue_light">
+          {price > 0 ? (
+            <div className={` ${isRussian ? "border-rare border-4" :null} ${isLegendary ? "border-legendary border-4" : null}
+             ${isRussian ? "border-rare border-4" :null}relative ${isMaineCoon ? "border-uncommon" :null}  ${isSomali ? "border-rare":""} text-2xl font-extrabold text-blue_light`}>
               Price:{price}
-              <div className="absolute bottom-0 f">{breeds}</div>
+              {isLegendary ? <div className=" relative right-0">LEGENDARY</div> : ""}
+              <div className="relative text-xl">{hasBreed ?<div>
+                 Breed: {breeds}</div> : null }</div>
             </div>
           ) : null}
          
