@@ -25,10 +25,7 @@ const Home: NextPage = () => {
   const [breeds, setBreeds] = useState([""]);
   const [price, setPrice] = useState(0);
   const [hasBreed, setBreed] = useState(false);
-  const [isLegendary, setLegendary] = useState(true);
-  const [isRussian, setRussian] = useState(false);
-  const [isMaineCoon, setMaineCoon] = useState(false);
-  const [isSomali, setSomali] = useState(false);
+
   const catsOfThisRound: string[] = [];
   const pricesOfThisRound: number[] = [];
 
@@ -74,9 +71,20 @@ const Home: NextPage = () => {
     const cats = await getCatFromAPI();
     setCats(cats);
     for (let i = 0; i < cats.length; i++) {
-      pricesOfThisRound[i] = Math.floor(Math.random() * 10) + 2;
-      catsOfThisRound[i] = JSON.stringify(cats[i].url ?? "");
-      catsOfThisRound[i] = catsOfThisRound[i]?.replaceAll('"', "") ?? "";
+      if (cats[i].breeds[0]) {
+        pricesOfThisRound[i] = Math.floor(Math.random() * 50) + 15;
+        console.log(pricesOfThisRound[i], "RARE BREED PRICE");
+        if (JSON.stringify(cats[i].breeds[0].name).includes("x")) {
+          pricesOfThisRound[i] = Math.floor(Math.random() * 100) + 50;
+          console.log(pricesOfThisRound[i], "EXOTIC");
+        }
+        catsOfThisRound[i] = JSON.stringify(cats[i].url ?? "");
+        catsOfThisRound[i] = catsOfThisRound[i]?.replaceAll('"', "") ?? "";
+      } else {
+        pricesOfThisRound[i] = Math.floor(Math.random() * 10) + 2;
+        catsOfThisRound[i] = JSON.stringify(cats[i].url ?? "");
+        catsOfThisRound[i] = catsOfThisRound[i]?.replaceAll('"', "") ?? "";
+      }
     }
     setPrices(pricesOfThisRound);
   };
@@ -130,43 +138,27 @@ const Home: NextPage = () => {
     if (cats[index].breeds.length > 0) {
       if (cats[index].breeds[0].name) {
         console.log(JSON.stringify("BREED:" + cats[index].breeds[0].name));
-        const name:string = cats[index].breeds[0].name;
-        if(name.includes("x")){
-          pricesOfThisRound[index] = 100;
-          setLegendary(true);
-        }
-        if(name.includes("Russ")){
-          setRussian(true);
-        }
-        if(name.includes("Main")){
-          setMaineCoon(true);
-        }
-        if(name.includes("Soma")){
-          setSomali(true);
-        }
-        setBreeds(cats[index].breeds[0].name);
         setBreed(true);
+        const name: string = cats[index].breeds[0].name;
+        setBreeds([name]);
+        return true;
+      } else {
+        setBreed(false);
+        setBreeds([""]);
+        return false;
       }
-    } else {
-      setLegendary(false);
-      setMaineCoon(false);
-      setSomali(false);
-      setRussian(false);
-      setBreeds([""]);
-      setBreed(false);
     }
   };
-
-
 
   const showYourSavedCats = () => {
     console.log("You have saved", savedCats + "cats");
     console.log(savedCatPics);
-    setPlayerScore(20);
+    setPlayerScore((score) => score + 20);
   };
 
   const displayCatInfo = (index: number) => {
     checkForBreed(index);
+
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     setPrice(prices[index]!);
   };
@@ -174,6 +166,31 @@ const Home: NextPage = () => {
   const hideCatInfo = () => {
     setBreeds([""]);
     setPrice(0);
+    setBreed(false);
+  };
+
+  const setBorderDependingOnPrice = (index: number) => {
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (prices[index]! > 100) {
+      return "border-legendary";
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (prices[index]! > 10 && prices[index]! < 25) {
+      return "border-uncommon";
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (prices[index]! > 0 && prices[index]! <= 10) {
+      return "border-common";
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (prices[index]! > 25 && prices[index]! < 40) {
+      return "border-rare";
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (prices[index]! > 40 && prices[index]! < 100) {
+      return "border-epic";
+    }
   };
 
   return (
@@ -203,14 +220,16 @@ const Home: NextPage = () => {
                   return (
                     <div key={value}>
                       <Image
-                        className="mx-20" 
+                        className={`mx-20 rounded-lg border-4 px-0 ${setBorderDependingOnPrice(
+                          index
+                        )}`}
                         src={value !== undefined && value ? value : ""}
                         alt={""}
                         width={300}
                         height={cats[index].height}
                         onClick={() => buyCat(index)}
                         onMouseOver={() => displayCatInfo(index)}
-                        onMouseOut={() =>hideCatInfo()}
+                        onMouseOut={() => hideCatInfo()}
                       ></Image>
                     </div>
                   );
@@ -219,28 +238,55 @@ const Home: NextPage = () => {
             </>
           </div>
           <p className="absolute bottom-0 left-0 flex w-40 flex-row rounded-md bg-blue_light p-4 text-2xl text-white ">
-            Purrency: {score}
+            Treats: {score}
           </p>
-          <button  onClick={showYourSavedCats} className="absolute bottom-0 right-0 rounded-md bg-blue_light p-4 text-2xl text-white ">
+          <button
+            onClick={showYourSavedCats}
+            className="absolute bottom-0 right-0 rounded-md bg-blue_light p-4 text-2xl text-white "
+          >
             Your Cats: {savedCats}
           </button>
           {price > 0 ? (
-            <div className={` ${isRussian ? "border-rare border-4" :null} ${isLegendary ? "border-legendary border-4" : null}
-             ${isRussian ? "border-rare border-4" :null}relative ${isMaineCoon ? "border-uncommon" :null}  ${isSomali ? "border-rare":""} text-2xl font-extrabold text-blue_light`}>
+            <div
+              className={`absolute bottom-32 w-40 text-2xl font-extrabold text-blue_light`}
+            >
               Price:{price}
-              {isLegendary ? <div className=" relative right-0">LEGENDARY</div> : ""}
-              <div className="relative text-xl">{hasBreed ?<div>
-                 Breed: {breeds}</div> : null }</div>
             </div>
           ) : null}
-         
+          {price > 100 ? (
+            <div className="absolute bottom-40 text-4xl font-extrabold text-legendary">
+              Legendary
+            </div>
+          ) : null}
+          {price < 100 && price > 40 ? (
+            <div className="absolute bottom-40 text-4xl font-extrabold text-epic">
+              Epic
+            </div>
+          ) : null}
+          {price >= 11 && price < 25 ? (
+            <div className="absolute bottom-40 text-4xl font-extrabold text-uncommon">
+              Uncommon
+            </div>
+          ) : null}
+          {price <= 10 && price > 0 ? (
+            <div className="absolute bottom-40 text-4xl font-extrabold text-common">
+              Common
+            </div>
+          ) : null}
+          {hasBreed ? (
+            <div
+              className={`absolute  bottom-20 rounded-md ${setBorderDependingOnPrice} w-auto text-xl font-extrabold text-blue_light`}
+            >
+              Breed:{breeds}
+            </div>
+          ) : null}
         </div>
       ) : (
         <main className=" grid min-h-screen place-items-center  bg-gradient-to-t from-background_dark to-background_bright">
           {firstTry ? (
             <button
               onClick={initializeData}
-              className="rounded-full bg-blue_dark  px-8 py-4 font-bold text-white hover:bg-blue_light"
+              className="rounded-full bg-blue_light px-16 py-8 text-4xl font-extrabold text-white hover:bg-blue_light"
             >
               Start
             </button>
@@ -261,7 +307,7 @@ const Home: NextPage = () => {
             </div>
           )}
           <p className="absolute bottom-0 left-0 rounded-md bg-blue_light p-4 text-2xl text-white ">
-            Purrency: {score}
+            Treats: {score}
           </p>
           <button
             onClick={showYourSavedCats}
