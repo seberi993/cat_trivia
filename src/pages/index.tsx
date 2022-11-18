@@ -4,8 +4,8 @@ import getTriviaFromAPI from "./api/getTriviaFromAPI";
 import { useState } from "react";
 import Image from "next/image";
 import getCatFromAPI from "./api/getCatFromAPI";
-import LoginPage from "./loginPage";
-import SignIn from "./api/auth/signIn";
+import LoginPage from "./LoginPage"
+
 
 
 
