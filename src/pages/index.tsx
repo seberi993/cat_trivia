@@ -87,7 +87,7 @@ const Home: NextPage = () => {
         pricesOfThisRound[i] = Math.floor(Math.random() * 50) + 15;
         console.log(pricesOfThisRound[i], "RARE BREED PRICE");
         if (JSON.stringify(cats[i].breeds[0].name).includes("x")) {
-          pricesOfThisRound[i] = Math.floor(Math.random() * 100) + 50;
+          pricesOfThisRound[i] = Math.floor(Math.random() * 110) + 50;
           console.log(pricesOfThisRound[i], "EXOTIC");
         }
         catsOfThisRound[i] = JSON.stringify(cats[i].url ?? "");
@@ -202,7 +202,7 @@ const Home: NextPage = () => {
       return "border-rare";
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (prices[index]! > 40 && prices[index]! < 100) {
+    if (prices[index]! >= 40 && prices[index]! < 100) {
       return "border-epic";
     }
   };
@@ -273,7 +273,7 @@ const Home: NextPage = () => {
               God-like
             </div>
           ) : null}
-          {price < 100 && price > 40 ? (
+          {price < 100 && price >= 40 ? (
             <div className="absolute bottom-40 text-4xl font-extrabold text-epic">
               Epic
             </div>
