@@ -4,10 +4,8 @@ import getTriviaFromAPI from "./api/getTriviaFromAPI";
 import { useState } from "react";
 import Image from "next/image";
 import getCatFromAPI from "./api/getCatFromAPI";
-import LoginPage from "./LoginPage"
-
-
-
+import LoginPage from "./LoginPage";
+import { url } from "inspector";
 
 //TODO: fix prisma database to saved cats
 //TODO: display saved cats nicely when "your cats" button is presseds
@@ -37,16 +35,15 @@ const Home: NextPage = () => {
     loadNextQuestion();
     loadNextCats();
     setFirstTry(false);
-   }
-    const showLoadingScreen = () =>{
-      setLoading(true);
-    }
-    const hideLoadingScreen = () =>{
-      setLoading(false);
-    }
+  }
+  const showLoadingScreen = () => {
+    setLoading(true);
+  };
+  const hideLoadingScreen = () => {
+    setLoading(false);
+  };
 
   const checkAnswer = () => {
-    
     const userInput = document.getElementById(
       "fname"
     ) as HTMLInputElement | null;
@@ -76,27 +73,51 @@ const Home: NextPage = () => {
     setCorrectAnswer(trivia[0].answer);
   };
 
-  const loadNextCats = async () => {
+  const setLegendaryPrice = () => {
+    return Math.floor(Math.random() * 255) + 75;
+  };
+  const setEpicPrice = () => {
+    return Math.floor(Math.random() * 110) + 50;
+  };
+  const setRarePrice = () => {
+    return Math.floor(Math.random() * 50) + 15;
+  };
+  const setUncommonPrice = () => {
+    return Math.floor(Math.random() * 30) + 10;
+  };
+  const setCommonPrice = () => {
+    return Math.floor(Math.random() * 10) + 2;
+  };
 
+  const loadNextCats = async () => {
     setListOfCats(catsOfThisRound);
     setPrice(0);
     const cats = await getCatFromAPI();
     setCats(cats);
+
     for (let i = 0; i < cats.length; i++) {
+      pricesOfThisRound[i] = setCommonPrice();
+      console.log(cats[i].height);
       if (cats[i].breeds[0]) {
-        pricesOfThisRound[i] = Math.floor(Math.random() * 50) + 15;
-        console.log(pricesOfThisRound[i], "RARE BREED PRICE");
+        pricesOfThisRound[i] = setRarePrice();
         if (JSON.stringify(cats[i].breeds[0].name).includes("x")) {
-          pricesOfThisRound[i] = Math.floor(Math.random() * 110) + 50;
-          console.log(pricesOfThisRound[i], "EXOTIC");
+          pricesOfThisRound[i] = setEpicPrice();
+          if (cats[i].url.includes(".gif") > 0) {
+            pricesOfThisRound[i] = setLegendaryPrice();
+          }
         }
-        catsOfThisRound[i] = JSON.stringify(cats[i].url ?? "");
-        catsOfThisRound[i] = catsOfThisRound[i]?.replaceAll('"', "") ?? "";
+        if (JSON.stringify(cats[i].breeds[0].name).includes("ambino")) {
+        }
       } else {
-        pricesOfThisRound[i] = Math.floor(Math.random() * 10) + 2;
-        catsOfThisRound[i] = JSON.stringify(cats[i].url ?? "");
-        catsOfThisRound[i] = catsOfThisRound[i]?.replaceAll('"', "") ?? "";
+        if (cats[i].url.includes(".gif") > 0) {
+          pricesOfThisRound[i] = setRarePrice();
+        }
+        if (cats[i].height > 600) {
+          pricesOfThisRound[i] = setUncommonPrice();
+        }
       }
+      catsOfThisRound[i] = JSON.stringify(cats[i].url ?? "");
+      catsOfThisRound[i] = catsOfThisRound[i]?.replaceAll('"', "") ?? "";
     }
     setPrices(pricesOfThisRound);
   };
@@ -153,12 +174,11 @@ const Home: NextPage = () => {
         setBreed(true);
         const name: string = cats[index].breeds[0].name;
         setBreeds([name]);
-    
         return true;
       } else {
         setBreed(false);
         setBreeds([""]);
-     
+
         return false;
       }
     }
@@ -171,7 +191,6 @@ const Home: NextPage = () => {
   };
 
   const displayCatInfo = (index: number) => {
-    
     checkForBreed(index);
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -187,22 +206,22 @@ const Home: NextPage = () => {
   const setBorderDependingOnPrice = (index: number) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (prices[index]! > 100) {
-      return "border-legendary";
+      return "border-legendary hover:border-8";
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (prices[index]! > 10 && prices[index]! < 25) {
-      return "border-uncommon";
+    if (prices[index]! > 10 && prices[index]! <= 25) {
+      return "border-uncommon ";
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (prices[index]! > 0 && prices[index]! <= 10) {
       return "border-white";
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (prices[index]! > 25 && prices[index]! < 40) {
+    if (prices[index]! >= 25 && prices[index]! <= 40) {
       return "border-rare";
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (prices[index]! >= 40 && prices[index]! < 100) {
+    if (prices[index]! >= 40 && prices[index]! <= 100) {
       return "border-epic";
     }
   };
@@ -234,7 +253,7 @@ const Home: NextPage = () => {
                   return (
                     <div key={value}>
                       <Image
-                        className={`mx-20 rounded-lg border-4 px-0 ${setBorderDependingOnPrice(
+                        className={`hover:border-opacity-10 border-4 h-fit max-h-screen rounded-lg  ${setBorderDependingOnPrice(
                           index
                         )}`}
                         src={value !== undefined && value ? value : ""}
@@ -252,50 +271,50 @@ const Home: NextPage = () => {
               </div>
             </>
           </div>
-          <p className="absolute bottom-0 left-0 flex w-40 flex-row rounded-md bg-blue_light p-4 text-2xl text-white ">
+          <p className="treats">
             Treats: {score}
           </p>
           <button
             onClick={showYourSavedCats}
-            className="absolute bottom-0 right-0 rounded-md bg-blue_light p-4 text-2xl text-white "
+            className="yourSavedCats"
           >
             Your Cats: {savedCats}
           </button>
           {price > 0 ? (
             <div
-              className={`absolute bottom-32 w-40 text-2xl font-extrabold text-blue_light`}
+              className="price"
             >
               Price:{price}
             </div>
           ) : null}
           {price > 100 ? (
-            <div className="absolute bottom-40 text-4xl font-extrabold text-legendary">
+            <div className="legendaryPic">
               God-like
             </div>
           ) : null}
           {price < 100 && price >= 40 ? (
-            <div className="absolute bottom-40 text-4xl font-extrabold text-epic">
+            <div className="epicPic">
               Epic
             </div>
           ) : null}
-          {price >= 11 && price < 25 ? (
-            <div className="absolute bottom-40 text-4xl font-extrabold text-uncommon">
+          {price >= 11 && price <= 25 ? (
+            <div className="uncommonPic">
               Uncommon
             </div>
           ) : null}
-          {price > 25  && price < 40 ? (
-            <div className="absolute bottom-40 text-4xl font-extrabold text-rare">
+          {price > 25 && price <= 40 ? (
+            <div className="rarePic">
               Rare
             </div>
           ) : null}
           {price <= 10 && price > 0 ? (
-            <div className="absolute bottom-40 text-4xl font-extrabold text-white">
+            <div className="commonPic">
               Common
             </div>
           ) : null}
           {hasBreed ? (
             <div
-              className={`absolute  bottom-20 rounded-md ${setBorderDependingOnPrice} w-auto text-xl font-extrabold text-blue_light`}
+              className="breed"
             >
               Breed:{breeds}
             </div>
@@ -305,13 +324,13 @@ const Home: NextPage = () => {
         <main className=" grid min-h-screen place-items-center  bg-gradient-to-t from-background_dark to-background_bright">
           {firstTry ? (
             <div>
-              <LoginPage/>
-            <button
-              onClick={initializeData}
-              className="rounded-full bg-blue_light px-16 py-8 text-4xl font-extrabold text-white hover:bg-blue_light"
-            >
-              Start
-            </button>
+              <LoginPage />
+              <button
+                onClick={initializeData}
+                className="rounded-full bg-blue_light px-16 py-8 text-4xl font-extrabold text-white hover:bg-blue_light"
+              >
+                Start
+              </button>
             </div>
           ) : (
             <div className=" top-20 grid text-2xl font-extrabold text-text_field ">

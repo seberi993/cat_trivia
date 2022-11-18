@@ -3,3 +3,36 @@
 @import "tailwindcss/components";
 
 @import "tailwindcss/utilities";
+
+
+
+.legendaryPic{
+    @apply absolute bottom-16 left-auto w-40 text-4xl font-extrabold text-legendary;
+}
+.commonPic{
+    @apply absolute bottom-16 left-auto  text-4xl font-extrabold text-white;
+ }
+.rarePic{
+    @apply absolute bottom-16 left-auto w-40 text-4xl font-extrabold text-rare;
+}
+.uncommonPic{
+    @apply absolute bottom-16 left-auto  text-4xl font-extrabold text-uncommon ;
+}
+.epicPic{
+    @apply absolute bottom-16 left-auto w-40 text-4xl font-extrabold text-epic;
+}
+
+.price{
+@apply absolute bottom-0 left-40 text-2xl font-extrabold text-blue_light;
+}
+
+.treats{
+@apply absolute bottom-0 left-0 flex w-40 flex-row rounded-md bg-blue_light p-4 text-2xl text-white;
+}
+.yourSavedCats{
+@apply absolute bottom-0 right-0 rounded-md bg-blue_light p-4 text-2xl text-white ;
+}
+
+.breed{
+    @apply absolute bottom-28 left-0 rounded-md w-auto text-xl font-extrabold text-blue_light;
+}

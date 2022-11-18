@@ -14,11 +14,11 @@ const config = {
     defaultLocale: "en",
   },
   images:{
-    domains:["cdn2.thecatapi.com"],
+    domains:["cdn2.thecatapi.com","24.media.tumblr.com","25.media.tumblr.com"],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '"26.media.tumblr.com"',
+        hostname: '26.media.tumblr.com',
       }]
   }
 };

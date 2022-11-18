@@ -18,7 +18,6 @@ module.exports = {
       text_field:'rgb(12 74 110)',
       text_dark:'rgb(1 59 100)',
       white:'#f8fafc',
-
     }
   
   },

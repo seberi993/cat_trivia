@@ -1,7 +1,7 @@
 
 const getCatFromAPI = async () =>{
 
-const URL = "https://api.thecatapi.com/v1/images/search?limit=3";
+const URL = "https://api.thecatapi.com/v1/images/search?limit=4";
   const res = await fetch(URL, {
     method: "GET",
     headers: {
