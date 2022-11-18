@@ -8,7 +8,7 @@ const LoginPage = () => {
     return(    
     <div>
       <> Welcome {session.user} </>
-      <button className=" border-white border-2 relative text-white rounded-md bg-legendary" onClick={() => signOut}>Sign out</button>
+      <button className=" border-white border-2 relative text-white rounded-md bg-legendary" onClick={() => signOut()}>Sign out</button>
     </div>
     );
   } else {
@@ -16,7 +16,7 @@ const LoginPage = () => {
       <div>
         <button
           className=" border-white border-2 relative text-white rounded-md bg-uncommon"
-          onClick={() => signIn}
+          onClick={() => signIn()}
         >
           Sign in
         </button>
