@@ -6,6 +6,7 @@ import Image from "next/image";
 import getCatFromAPI from "./api/getCatFromAPI";
 import LoginPage from "./LoginPage";
 import { url } from "inspector";
+import { Result } from "postcss";
 
 //TODO: fix prisma database to saved cats
 //TODO: display saved cats nicely when "your cats" button is presseds
@@ -27,6 +28,8 @@ const Home: NextPage = () => {
   const [price, setPrice] = useState(0);
   const [hasBreed, setBreed] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const [hintVisibility, setHintVisibility] = useState(false);
+  const [hintIndex, setHintIndex] = useState(1);
 
   const catsOfThisRound: string[] = [];
   const pricesOfThisRound: number[] = [];
@@ -53,8 +56,7 @@ const Home: NextPage = () => {
       if (value.toLowerCase() === correctAnswer.toLowerCase()) {
         showLoadingScreen();
         setInLootMenu(true);
-        setHint("Purrfect! please pick one");
-        increaseScore(5);
+        increaseScore(10);
         clearInput();
         loadNextQuestion();
       }
@@ -62,7 +64,6 @@ const Home: NextPage = () => {
   };
 
   const goBackToTrivia = () => {
-    setHint("");
     setInLootMenu(false);
     loadNextCats();
   };
@@ -71,6 +72,9 @@ const Home: NextPage = () => {
     const trivia = await getTriviaFromAPI();
     setQuestion(trivia[0].question);
     setCorrectAnswer(trivia[0].answer);
+    setHint(trivia[0].answer);
+    setHintIndex(1);
+    setHintVisibility(false);
   };
 
   const setLegendaryPrice = () => {
@@ -225,6 +229,27 @@ const Home: NextPage = () => {
       return "border-epic";
     }
   };
+  const getNextHintLetter = () => {
+    if (score > 0) {
+ 
+      setHintVisibility(true);
+      getNextLetterOfHint();
+    } else {
+      alert("You can't afford a hint, sell a cat");
+      setHintVisibility(false);
+    }
+  };
+
+  const getNextLetterOfHint = () => {
+    if (hintIndex <= correctAnswer.length) {
+      setHintIndex((hintIndex) => hintIndex + 1);
+      const partOfHint = correctAnswer.substring(0,hintIndex);
+      decreaseScore(1);
+      setHint(partOfHint)
+      
+    }
+  };
+
 
   return (
     <>
@@ -236,7 +261,7 @@ const Home: NextPage = () => {
       {inLootMenu ? (
         <div className="max-h-screen min-h-screen bg-gradient-to-t from-background_dark to-background_bright  ">
           <div>
-            {score <= 5 ? (
+            {score <= 10 ? (
               <button
                 onClick={loadNextCats}
                 className="full absolute top-0 rounded bg-blue_dark px-2 py-4 text-4xl text-white"
@@ -245,15 +270,12 @@ const Home: NextPage = () => {
               </button>
             ) : null}
             <>
-              <p className="px-96 text-4xl font-extrabold text-blue_light">
-                {hint}
-              </p>
               <div className="flex flex-row">
                 {listOfCats.map(function (value: string, index: number) {
                   return (
                     <div key={value}>
                       <Image
-                        className={`hover:border-opacity-10 border-4 h-fit max-h-screen rounded-lg  ${setBorderDependingOnPrice(
+                        className={`max-h-screen rounded-lg  border-4 hover:border-8  ${setBorderDependingOnPrice(
                           index
                         )}`}
                         src={value !== undefined && value ? value : ""}
@@ -271,54 +293,25 @@ const Home: NextPage = () => {
               </div>
             </>
           </div>
-          <p className="treats">
-            Treats: {score}
-          </p>
-          <button
-            onClick={showYourSavedCats}
-            className="yourSavedCats"
-          >
+          <p className="treats">Treats: {score}</p>
+          <button onClick={showYourSavedCats} className="yourSavedCats">
             Your Cats: {savedCats}
           </button>
-          {price > 0 ? (
-            <div
-              className="price"
-            >
-              Price:{price}
-            </div>
-          ) : null}
-          {price > 100 ? (
-            <div className="legendaryPic">
-              God-like
-            </div>
-          ) : null}
+          {price > 0 ? <div className="price">Price:{price}</div> : null}
+          {price > 100 ? <div className="legendaryPic">God-like</div> : null}
           {price < 100 && price >= 40 ? (
-            <div className="epicPic">
-              Epic
-            </div>
+            <div className="epicPic">Epic</div>
           ) : null}
           {price >= 11 && price <= 25 ? (
-            <div className="uncommonPic">
-              Uncommon
-            </div>
+            <div className="uncommonPic">Uncommon</div>
           ) : null}
           {price > 25 && price <= 40 ? (
-            <div className="rarePic">
-              Rare
-            </div>
+            <div className="rarePic">Rare</div>
           ) : null}
           {price <= 10 && price > 0 ? (
-            <div className="commonPic">
-              Common
-            </div>
+            <div className="commonPic">Common</div>
           ) : null}
-          {hasBreed ? (
-            <div
-              className="breed"
-            >
-              Breed:{breeds}
-            </div>
-          ) : null}
+          {hasBreed ? <div className="breed">Breed:{breeds}</div> : null}
         </div>
       ) : (
         <main className=" grid min-h-screen place-items-center  bg-gradient-to-t from-background_dark to-background_bright">
@@ -346,6 +339,17 @@ const Home: NextPage = () => {
               >
                 Cheat
               </button>
+              <button
+                onClick={getNextHintLetter}
+                className="absolute top-0 right-80 rounded-full bg-blue_light py-2 px-4 font-bold text-white hover:bg-blue_dark"
+              >
+                Get Hint!
+              </button>
+              {hintVisibility ? (
+                <p className=" user-select:none relative text-4xl text-white ">
+                  {hint}
+                </p>
+              ) : null}
             </div>
           )}
           <p className="absolute bottom-0 left-0 rounded-md bg-blue_light p-4 text-2xl text-white ">
