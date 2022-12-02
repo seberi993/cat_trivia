@@ -24,6 +24,7 @@
     "next-auth": "^4.16.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "say-meow": "^1.0.0",
     "superjson": "1.9.1",
     "zod": "^3.18.0"
   },

@@ -5,8 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import getCatFromAPI from "./api/getCatFromAPI";
 import LoginPage from "./LoginPage";
-import { url } from "inspector";
-import { Result } from "postcss";
+import { sayMeow } from "say-meow";
 
 //TODO: fix prisma database to saved cats
 //TODO: display saved cats nicely when "your cats" button is presseds
@@ -41,9 +40,6 @@ const Home: NextPage = () => {
   }
   const showLoadingScreen = () => {
     setLoading(true);
-  };
-  const hideLoadingScreen = () => {
-    setLoading(false);
   };
 
   const checkAnswer = () => {
@@ -133,8 +129,12 @@ const Home: NextPage = () => {
   };
 
   const decreaseScore = (amount: number) => {
-    for (let i = 0; i < amount; i++) {
-      setPlayerScore((score) => score - 1);
+    if(amount < score){
+      for (let i = 0; i < amount; i++) {
+        setPlayerScore((score) => score - 1);
+      }
+    }else{
+      alert("You are out of treats!");
     }
   };
 
@@ -154,6 +154,7 @@ const Home: NextPage = () => {
     if (textArea != null) {
       textArea.value = correctAnswer;
     }
+    console.log(sayMeow("Meow"));
   };
 
   const buyCat = (index: number) => {
@@ -190,6 +191,7 @@ const Home: NextPage = () => {
 
   const showYourSavedCats = () => {
     console.log("You have saved", savedCats + "cats");
+   
     console.log(savedCatPics);
     setPlayerScore((score) => score + 20);
   };
@@ -231,7 +233,6 @@ const Home: NextPage = () => {
   };
   const getNextHintLetter = () => {
     if (score > 0) {
- 
       setHintVisibility(true);
       getNextLetterOfHint();
     } else {
@@ -241,12 +242,14 @@ const Home: NextPage = () => {
   };
 
   const getNextLetterOfHint = () => {
-    if (hintIndex <= correctAnswer.length) {
+    if (hintIndex <= correctAnswer.length && score > hintIndex) {
       setHintIndex((hintIndex) => hintIndex + 1);
       const partOfHint = correctAnswer.substring(0,hintIndex);
-      decreaseScore(1);
+      decreaseScore(hintIndex);
       setHint(partOfHint)
-      
+
+    }else{
+      alert("You can't afford a hint, sell a cat");
     }
   };
 
